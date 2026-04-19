@@ -1670,7 +1670,8 @@ function buildDatabase(datasetKey) {
 
 function normalizeResults(resultSets) {
   return resultSets.map((set) => ({
-    columns: [...set.columns],
+    // We intentionally exclude column names from the comparison so that 
+    // custom aliases (e.g., 'sumofquantity' vs 'total_quantity') don't cause failures.
     values: set.values.map((row) => row.map((value) => (value === null ? null : String(value)))),
   }));
 }
