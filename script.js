@@ -1809,6 +1809,8 @@ function nextTemplateIndex(conceptKey) {
     return randomItem(unusedIndices);
   }
 
+  // If all templates used, reset history for this concept and pick any
+  rotation.usedIndices = [];
   return randomItem(allIndices);
 }
 
@@ -2397,8 +2399,14 @@ async function initializeTrainer() {
 showHintButton.addEventListener("click", showHint);
 showCoachingButton.addEventListener("click", showCoaching);
 nextQuestionButton.addEventListener("click", () => {
-  adaptiveFeedback.textContent = `Question skipped. You are still inside ${currentConcept().label}, and the trainer will give you another variation in the same concept.`;
-  loadCurrentConceptQuestion();
+  const conceptKey = currentQuestion.conceptKey;
+  if (progress[conceptKey].skipChallengeActive) {
+    adaptiveFeedback.textContent = "Challenge skipped. Here is another mastery challenge for this section.";
+    handleSkipSection();
+  } else {
+    adaptiveFeedback.textContent = `Question skipped. You are still inside ${currentConcept().label}, and the trainer will give you another variation in the same concept.`;
+    loadCurrentConceptQuestion();
+  }
 });
 runPracticeButton.addEventListener("click", runPractice);
 function handleSkipSection() {
@@ -2409,7 +2417,26 @@ function handleSkipSection() {
 
   // Pick a random template from the latter half of the templates (usually more complex)
   const startIndex = Math.floor(templates.length / 2);
-  const randomIndex = startIndex + Math.floor(Math.random() * (templates.length - startIndex));
+  const possibleIndices = [];
+  for (let i = startIndex; i < templates.length; i++) {
+    possibleIndices.push(i);
+  }
+
+  // Try to pick one that hasn't been used recently
+  const rotation = questionRotation[conceptKey];
+  let unusedPossible = possibleIndices.filter(idx => !rotation.usedIndices.includes(idx));
+  
+  // If all hard ones are used, reset just the hard ones in the rotation or just pick any
+  if (unusedPossible.length === 0) {
+    unusedPossible = possibleIndices;
+  }
+
+  // Also avoid the current question if we're already in a challenge
+  if (currentQuestion && currentQuestion.isChallenge && unusedPossible.length > 1) {
+    unusedPossible = unusedPossible.filter(idx => idx !== currentQuestion.templateIndex);
+  }
+
+  const randomIndex = randomItem(unusedPossible);
   const baseTemplate = templates[randomIndex];
 
   const challengeQuestion = {
@@ -2422,7 +2449,9 @@ function handleSkipSection() {
     isChallenge: true,
   };
   
+  currentQuestionAttempts = 0;
   progress[conceptKey].skipChallengeActive = true;
+  recordVisibleQuestion(conceptKey, randomIndex);
   setQuestion(challengeQuestion);
   adaptiveFeedback.textContent = "Pass this high-difficulty challenge with zero help to skip the entire section.";
 }
