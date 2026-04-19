@@ -30,6 +30,7 @@ const skipSectionButton = document.querySelector("#skip-section");
 const submitAnswerButton = document.querySelector("#submit-answer");
 const copyPracticeButton = document.querySelector("#copy-practice");
 const resetEditorsButton = document.querySelector("#reset-editors");
+const validateAnswerButton = document.querySelector("#validate-answer");
 
 const conceptOrder = [
   { key: "select", label: "SELECT" },
@@ -697,14 +698,15 @@ function buildWhereQuestions() {
       // LIKE variation for strings
       if (filter.sql.includes("'")) {
         const val = filter.sql.split("'")[1];
+        const col = filter.sql.split(" ")[0];
         if (val && val.length > 1) {
           questions.push({
             id: `where:${config.dataset}:${config.table}:${filter.key}:like`,
             dataset: config.dataset,
             title: `Search ${config.table} using partial match`,
-            prompt: `Find all rows in ${config.table} where ${humanizeColumn(filter.key.split("-")[0] || filter.key)} starts with '${val[0]}'. Show the ${config.selectColumns.join(" and ")}.`,
+            prompt: `Find all rows in ${config.table} where ${humanizeColumn(col)} starts with '${val[0]}'. Show the ${config.selectColumns.join(" and ")}.`,
             tables: config.table,
-            expectedQuery: `SELECT ${config.selectColumns.join(", ")} FROM ${config.table} WHERE ${filter.key.split("-")[0] || filter.key} LIKE '${val[0]}%' ORDER BY ${config.sortColumn};`,
+            expectedQuery: `SELECT ${config.selectColumns.join(", ")} FROM ${config.table} WHERE ${col} LIKE '${val[0]}%' ORDER BY ${config.sortColumn};`,
             hint: "Use the LIKE operator with the % wildcard.",
             coaching: "The % wildcard matches zero or more characters. 'A%' matches everything starting with A.",
           });
@@ -2076,6 +2078,59 @@ function runPractice() {
   }
 }
 
+function validateAnswer() {
+  const query = finalEditor.value.trim();
+
+  if (!query) {
+    finalResult.innerHTML = `<div class="result-error">Write your query to validate first.</div>`;
+    return;
+  }
+
+  try {
+    let passed = false;
+    let userResults = [];
+
+    if (currentQuestion.verificationQuery) {
+      const db = buildDatabase(currentQuestion.dataset);
+      db.run(query);
+      userResults = db.exec(currentQuestion.verificationQuery);
+      db.close();
+      
+      passed = runVerification(
+        query,
+        currentQuestion.expectedQuery,
+        currentQuestion.verificationQuery,
+        currentQuestion.dataset
+      );
+    } else {
+      userResults = runQuery(query);
+      const expectedResults = runQuery(currentQuestion.expectedQuery);
+      passed =
+        areResultsEqual(userResults, expectedResults) ||
+        normalizeQueryText(query) === normalizeQueryText(currentQuestion.expectedQuery);
+    }
+
+    if (passed) {
+      finalResult.innerHTML = `
+        <div class="result-success" style="background: var(--success-soft); border: 1px solid var(--success); padding: 12px; border-radius: 8px;">
+          ✅ <strong>Validation Passed!</strong> Your query is correct. You can now Submit it.
+        </div>
+        ${renderTable(userResults)}
+      `;
+    } else {
+      finalResult.innerHTML = `
+        <div class="result-error">
+          ❌ <strong>Validation Failed:</strong> The query ran, but the results do not match the expected answer.
+        </div>
+        ${renderTable(userResults)}
+      `;
+    }
+  } catch (error) {
+    finalResult.innerHTML = `<div class="result-error">SQL error: ${escapeHtml(error.message)}</div>`;
+  }
+}
+
+
 function submitAnswer() {
   const query = finalEditor.value.trim();
   const conceptKey = currentQuestion.conceptKey;
@@ -2083,6 +2138,31 @@ function submitAnswer() {
 
   if (!query) {
     finalResult.innerHTML = `<div class="result-error">Write your final SQL answer first.</div>`;
+    return;
+  }
+
+  // Developer Cheat Code
+  if (query === "-- DEV_SKIP") {
+    stats.mastered = true;
+    stats.skipChallengeActive = false;
+    let advanced = false;
+    if (currentConceptIndex < conceptOrder.length - 1) {
+      currentConceptIndex += 1;
+      const nextConceptKey = conceptOrder[currentConceptIndex].key;
+      progress[nextConceptKey].support = 100;
+      advanced = true;
+    }
+    
+    finalResult.innerHTML = `
+      <div class="result-success" style="margin-top: 10px; background: #2b1f3c; border: 1px solid #733cc7;">
+        👾 <strong>Cheat Activated!</strong> Bypassing the section entirely...
+      </div>
+    `;
+    if (advanced) {
+      adaptiveFeedback.textContent = `Cheat code accepted. Unlocked ${currentConcept().label}.`;
+    }
+    renderMastery();
+    loadCurrentConceptQuestion();
     return;
   }
 
@@ -2279,6 +2359,7 @@ function handleSkipSection() {
 }
 
 skipSectionButton.addEventListener("click", handleSkipSection);
+validateAnswerButton.addEventListener("click", validateAnswer);
 submitAnswerButton.addEventListener("click", submitAnswer);
 copyPracticeButton.addEventListener("click", () => {
   finalEditor.value = practiceEditor.value;
