@@ -1,0 +1,14 @@
+{
+  "name": "sql-path-academy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Self-learning SQL academy with adaptive assessment, hands-on labs, and browser-based SQL practice.",
+  "scripts": {
+    "start": "python3 -m http.server 4173",
+    "dev": "python3 -m http.server 4173",
+    "open": "open http://127.0.0.1:4173"
+  },
+  "dependencies": {
+    "playwright": "^1.59.1"
+  }
+}

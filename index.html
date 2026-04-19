@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SQL Path Trainer | Adaptive SQL Quiz Lab</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark">SQL</span>
+          <div>
+            <p class="eyebrow">Adaptive SQL Trainer</p>
+            <h1>Learn by answering real SQL questions.</h1>
+          </div>
+        </div>
+        <div class="status-row">
+          <article class="status-card">
+            <span>Engine</span>
+            <strong id="engine-status">Loading...</strong>
+          </article>
+          <article class="status-card">
+            <span>Current Skill</span>
+            <strong id="current-skill-label">SELECT</strong>
+          </article>
+          <article class="status-card">
+            <span>Difficulty</span>
+            <strong id="current-difficulty-label">Level 1</strong>
+          </article>
+          <article class="status-card">
+            <span>Current Streak</span>
+            <strong id="current-streak-label">0</strong>
+          </article>
+        </div>
+      </header>
+
+      <main class="trainer-layout">
+        <section class="question-panel">
+          <article class="question-card primary">
+            <div class="card-heading">
+              <div>
+                <p class="eyebrow">Current Quiz Challenge</p>
+                <h2 id="question-title">Loading question...</h2>
+              </div>
+              <span id="question-badge" class="pill">Adaptive</span>
+            </div>
+            <p id="question-prompt" class="question-prompt">
+              Preparing your first SQL challenge.
+            </p>
+            <div class="question-meta">
+              <div class="meta-card">
+                <span>Dataset</span>
+                <strong id="question-dataset">Library</strong>
+              </div>
+              <div class="meta-card">
+                <span>Tables</span>
+                <strong id="question-tables">books</strong>
+              </div>
+              <div class="meta-card">
+                <span>Question #</span>
+                <strong id="question-counter">1</strong>
+              </div>
+            </div>
+            <div class="schema-builder">
+              <div class="card-heading compact-heading">
+                <div>
+                  <p class="eyebrow">Schema Builder</p>
+                  <h3>Drag tables and columns into the lab</h3>
+                </div>
+              </div>
+              <p class="schema-intro">
+                Nothing is prefilled. Use the table names and column names below to build your own SQL from scratch.
+              </p>
+              <div id="schema-palette" class="schema-palette"></div>
+            </div>
+          </article>
+
+          <article class="question-card">
+            <div class="card-heading">
+              <div>
+                <p class="eyebrow">Coaching</p>
+                <h3>Use help only when needed</h3>
+              </div>
+            </div>
+            <div class="action-row">
+              <button id="show-hint" class="ghost-button" type="button">Show Hint</button>
+              <button id="show-coaching" class="ghost-button" type="button">Explain Concept</button>
+              <button id="next-question" class="ghost-button" type="button">Skip Question</button>
+              <button id="skip-section" class="ghost-button secondary-action" type="button">Skip Section</button>
+            </div>
+            <div class="coach-grid">
+              <article class="coach-card">
+                <h4>Hint</h4>
+                <p id="hint-text">Hints stay hidden until you ask.</p>
+              </article>
+              <article class="coach-card">
+                <h4>Learning Help</h4>
+                <p id="coaching-text">The trainer will explain the pattern behind the question when you ask.</p>
+              </article>
+            </div>
+          </article>
+          <article class="question-card">
+            <div class="card-heading">
+              <div>
+                <p class="eyebrow">Adaptive Feedback</p>
+                <h3>How the trainer responds</h3>
+              </div>
+            </div>
+            <p id="adaptive-feedback" class="adaptive-feedback">
+              The trainer will give feedback after you submit your final answer and then choose the next question based on your weak areas.
+            </p>
+          </article>
+
+          <article class="question-card">
+            <div class="card-heading">
+              <div>
+                <p class="eyebrow">Course Progress</p>
+                <h3>Learning Path Tracker</h3>
+              </div>
+            </div>
+            <div id="course-tracker" class="course-tracker">
+              <!-- Populated by JS -->
+            </div>
+          </article>
+
+          <div id="mastery-grid" class="mastery-grid" style="display: none;"></div>
+        </section>
+
+        <section class="workspace-panel">
+          <div class="workspace-grid">
+            <article class="editor-card">
+              <div class="card-heading">
+                <div>
+                  <p class="eyebrow">Practice Lab</p>
+                  <h3>Try queries freely here</h3>
+                </div>
+                <button id="run-practice" class="solid-button" type="button">Run Practice</button>
+              </div>
+              <label class="editor-label" for="practice-editor">Practice editor</label>
+              <textarea id="practice-editor" class="sql-editor" spellcheck="false"></textarea>
+              <p id="practice-meta" class="editor-meta">Use this space to explore before you submit your final answer.</p>
+              <div id="practice-result" class="result-panel"></div>
+            </article>
+
+            <article class="editor-card final-card">
+              <div class="card-heading">
+                <div>
+                  <p class="eyebrow">Final Answer</p>
+                  <h3>Submit your best query</h3>
+                </div>
+                <button id="submit-answer" class="solid-button" type="button">Check Final Answer</button>
+              </div>
+              <label class="editor-label" for="final-editor">Final answer editor</label>
+              <textarea id="final-editor" class="sql-editor" spellcheck="false"></textarea>
+              <div class="action-row compact">
+                <button id="copy-practice" class="ghost-button" type="button">Copy Practice To Final</button>
+                <button id="reset-editors" class="ghost-button" type="button">Reset Editors</button>
+              </div>
+              <p id="final-meta" class="editor-meta">Submit here when you want the adaptive engine to evaluate your answer.</p>
+              <div id="final-result" class="result-panel"></div>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
+    <script src="./script.js"></script>
+  </body>
+</html>
