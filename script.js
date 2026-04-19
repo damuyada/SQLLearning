@@ -2119,15 +2119,54 @@ function validateAnswer() {
         ${renderTable(userResults)}
       `;
     } else {
+      let comparisonUI = "";
+      try {
+        const expectedData = getExpectedResults(currentQuestion);
+        comparisonUI = `
+          <div style="margin: 15px 0; padding: 12px; border: 1px dashed var(--accent-soft); border-radius: 8px; background: var(--surface-strong);">
+            <p style="margin-bottom: 8px; font-weight: 600; color: var(--accent); font-size: 0.9rem;">🎯 TARGET OUTPUT (Expected):</p>
+            ${renderTable(expectedData)}
+          </div>
+        `;
+      } catch (e) {}
+
       finalResult.innerHTML = `
         <div class="result-error">
           ❌ <strong>Validation Failed:</strong> The query ran, but the results do not match the expected answer.
         </div>
+        ${comparisonUI}
+        <p style="margin: 10px 0 5px; font-weight: 600; font-size: 0.9rem;">YOUR OUTPUT:</p>
         ${renderTable(userResults)}
       `;
     }
   } catch (error) {
-    finalResult.innerHTML = `<div class="result-error">SQL error: ${escapeHtml(error.message)}</div>`;
+    let comparisonUI = "";
+    try {
+      const expectedData = getExpectedResults(currentQuestion);
+      comparisonUI = `
+        <div style="margin: 15px 0; padding: 12px; border: 1px dashed var(--accent-soft); border-radius: 8px; background: var(--surface-strong);">
+          <p style="margin-bottom: 8px; font-weight: 600; color: var(--accent); font-size: 0.9rem;">🎯 TARGET OUTPUT (Expected):</p>
+          ${renderTable(expectedData)}
+        </div>
+      `;
+    } catch (e) {}
+
+    finalResult.innerHTML = `
+      <div class="result-error">SQL error: ${escapeHtml(error.message)}</div>
+      ${comparisonUI}
+    `;
+  }
+}
+
+function getExpectedResults(question) {
+  if (question.verificationQuery) {
+    const db = buildDatabase(question.dataset);
+    db.run(question.expectedQuery);
+    const results = db.exec(question.verificationQuery);
+    db.close();
+    return results;
+  } else {
+    return runQuery(question.expectedQuery);
   }
 }
 
@@ -2246,26 +2285,15 @@ function submitAnswer() {
     
     let comparisonUI = "";
     if (currentQuestionAttempts >= 2) {
-      let expectedData = [];
       try {
-        if (currentQuestion.verificationQuery) {
-          const db = buildDatabase(currentQuestion.dataset);
-          db.run(currentQuestion.expectedQuery);
-          expectedData = db.exec(currentQuestion.verificationQuery);
-          db.close();
-        } else {
-          expectedData = runQuery(currentQuestion.expectedQuery);
-        }
-        
+        const expectedData = getExpectedResults(currentQuestion);
         comparisonUI = `
           <div style="margin: 15px 0; padding: 12px; border: 1px dashed var(--accent-soft); border-radius: 8px; background: var(--surface-strong);">
             <p style="margin-bottom: 8px; font-weight: 600; color: var(--accent); font-size: 0.9rem;">🎯 TARGET OUTPUT (Expected):</p>
             ${renderTable(expectedData)}
           </div>
         `;
-      } catch (e) {
-        console.error("Failed to generate comparison table:", e);
-      }
+      } catch (e) {}
     }
 
     let retryMessage = "";
@@ -2304,13 +2332,26 @@ function submitAnswer() {
     handleIncorrect(conceptKey);
     currentQuestionAttempts += 1;
     
+    let comparisonUI = "";
+    if (currentQuestionAttempts >= 2) {
+      try {
+        const expectedData = getExpectedResults(currentQuestion);
+        comparisonUI = `
+          <div style="margin: 15px 0; padding: 12px; border: 1px dashed var(--accent-soft); border-radius: 8px; background: var(--surface-strong);">
+            <p style="margin-bottom: 8px; font-weight: 600; color: var(--accent); font-size: 0.9rem;">🎯 TARGET OUTPUT (Expected):</p>
+            ${renderTable(expectedData)}
+          </div>
+        `;
+      } catch (e) {}
+    }
+
     let retryMessage = "";
     if (currentQuestionAttempts >= 3) {
       retryMessage = `
         <div class="result-error" style="margin-top: 15px; border-top: 1px solid var(--line); padding-top: 15px;">
           <strong>OUT OF ATTEMPTS:</strong> Here is the correct query to help you learn:
           <pre style="background: var(--surface-strong); padding: 12px; border-radius: 8px; margin-top: 8px; border: 1px solid var(--line); color: var(--accent);">${escapeHtml(currentQuestion.expectedQuery)}</pre>
-          <p style="margin-top: 8px; font-size: 0.9rem;">The trainer will give you a similar variation next.</p>
+          <p style="margin-top: 8px; font-size: 0.9rem;">The trainer will give you a similar variation next to practice this pattern.</p>
         </div>
       `;
     } else {
@@ -2324,6 +2365,7 @@ function submitAnswer() {
     finalResult.innerHTML = `
       <div class="result-error">SQL error: ${escapeHtml(error.message)}</div>
       ${retryMessage}
+      ${comparisonUI}
     `;
     
     renderMastery();
