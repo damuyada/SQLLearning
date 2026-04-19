@@ -1293,10 +1293,10 @@ function buildDmlQuestions() {
       id: "dml:library:delete-loans",
       dataset: "library",
       title: "Remove returned loans",
-      prompt: "Delete all records from the loans table where the book has already been returned (return_date is not null).",
+      prompt: "Delete all records from the loans table where the book has already been returned (returned_on is not null).",
       tables: "loans",
-      expectedQuery: "DELETE FROM loans WHERE return_date IS NOT NULL;",
-      verificationQuery: "SELECT COUNT(*) FROM loans WHERE return_date IS NOT NULL;",
+      expectedQuery: "DELETE FROM loans WHERE returned_on IS NOT NULL;",
+      verificationQuery: "SELECT COUNT(*) FROM loans WHERE returned_on IS NOT NULL;",
     },
     {
       id: "dml:store:price-hike",
