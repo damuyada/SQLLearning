@@ -1,46 +1,69 @@
-# SQL Path Academy
+# 🎓 SQL Academy Trainer
 
-An interactive SQL learning project designed as a self-learning academy rather than a simple webpage.
+![Aesthetics](https://img.shields.io/badge/Aesthetics-Premium-blueviolet?style=for-the-badge)
+![Tech](https://img.shields.io/badge/Engine-SQLite--WASM-003B57?style=for-the-badge&logo=sqlite)
+![Deployment](https://img.shields.io/badge/Deploy-Cloudflare--Pages-F38020?style=for-the-badge&logo=cloudflare)
 
-It includes:
+**SQL Academy Trainer** is a state-of-the-art, interactive learning platform designed to take you from SQL novice to mastery. Built with a focus on deep technical integrity and a premium user experience, it features a custom-built SQL grading engine and an adaptive curriculum.
 
-- Adaptive intake assessment
-- Hands-on module-based SQL training
-- Browser-based SQL playground using in-page SQLite
-- Schema visuals and concept illustrations
-- Guided exercises, challenges, and assessments
+---
 
-## Project Location
+## ✨ Key Features
 
-This project is already on your Mac at:
+### 🧠 Adaptive Learning Engine
+The trainer monitors your performance in real-time. If you struggle, it provides more scaffolding; if you succeed, it reduces help and introduces complex variations.
+*   **Concept Mastery**: Advance through 15+ SQL concepts, from basic `SELECT` to `WINDOW FUNCTIONS`.
+*   **Validation Mode**: Validate your queries against the target output without using up your limited submission attempts.
+*   **Intelligent Grading**: Our engine is alias-agnostic and logic-aware, meaning it cares about the *data* you return, not just the exact strings you type.
 
-`/Users/damodaryada/Documents/Codex/2026-04-18-lets-create-a-nice-web-page`
+### 🎨 Premium Developer Experience
+*   **Interactive Schema Palette**: Browse table schemas and instantly insert column names into your editor with a single click.
+*   **Glassmorphic UI**: A high-performance, modern interface that feels alive with micro-animations and smooth transitions.
+*   **Side-by-Side Comparison**: After two failed attempts, the trainer reveals the **Target Output**, allowing you to visually compare your results and self-correct.
 
-## Open In VS Code
+### 🚀 Mastery Challenges
+Feeling confident? Use the **Skip Section** feature to trigger a "Prove Your Mastery" challenge. Solve a high-difficulty, zero-help variation to unlock the next concept immediately.
 
-You can open this folder directly in VS Code, or open the workspace file:
+---
 
-`/Users/damodaryada/Documents/Codex/2026-04-18-lets-create-a-nice-web-page/sql-path-academy.code-workspace`
+## 🛠️ Tech Stack
 
-## Run Locally
+-   **Logic**: Pure JavaScript with `sql.js` (SQLite compiled to WebAssembly).
+-   **Styling**: Vanilla CSS3 with modern variables and glassmorphic design patterns.
+-   **Database**: In-browser relational database simulation using 3 custom datasets (Store, School, Library).
+-   **Portability**: Entirely client-side. No backend required—perfect for privacy and offline-first learning.
 
-From this folder:
+---
 
-```bash
-npm run dev
-```
+## 🏃 Local Setup
 
-Then open:
+1.  Clone the repository:
+    ```bash
+    git clone https://github.com/damuyada/SQLLearning.git
+    ```
+2.  Open `index.html` in any modern web browser.
+3.  (Optional) For the best experience, use a local server:
+    ```bash
+    # If you have Python installed
+    python3 -m http.server 8000
+    ```
 
-`http://127.0.0.1:4173`
+---
 
-## Main Files
+## 🌐 Deployment
 
-- `index.html` - academy structure and content
-- `styles.css` - visuals, layout, and illustrations
-- `script.js` - adaptive logic, training flow, and SQL playground behavior
+This project is optimized for **Cloudflare Pages**. 
+1.  Connect this repository to your Cloudflare Dashboard.
+2.  Set the Build Command to `None`.
+3.  Set the Output Directory to `/`.
+4.  Assign your custom domain.
 
-## Notes
+---
 
-- This is a static frontend project with browser-side SQL execution.
-- The project was tested locally with Playwright and a Python HTTP server.
+## 👨‍💻 Developer Tools
+
+Entering the cheat code `-- DEV_SKIP` in the Final Answer editor will instantly master the current concept (useful for testing curriculum paths).
+
+---
+
+*Built with ❤️ for SQL Learners everywhere.*
