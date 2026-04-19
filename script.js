@@ -1990,7 +1990,11 @@ function buildQuestion(conceptKey) {
 
 function loadCurrentConceptQuestion() {
   currentQuestionAttempts = 0;
-  setQuestion(buildQuestion(currentConcept().key));
+  const currentKey = currentConcept().key;
+  if (progress[currentKey]) {
+    progress[currentKey].skipChallengeActive = false;
+  }
+  setQuestion(buildQuestion(currentKey));
 }
 
 function maybeAdvanceConcept(conceptKey) {
@@ -2269,6 +2273,7 @@ function handleSkipSection() {
     isChallenge: true,
   };
   
+  progress[conceptKey].skipChallengeActive = true;
   setQuestion(challengeQuestion);
   adaptiveFeedback.textContent = "Pass this high-difficulty challenge with zero help to skip the entire section.";
 }
