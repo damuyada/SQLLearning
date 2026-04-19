@@ -978,7 +978,7 @@ function buildInnerJoinQuestions() {
       prompt: "Show each member name together with the title of the book they borrowed and the loan date. Sort by member name.",
       tables: "members, loans, books",
       expectedQuery:
-        "SELECT m.member_name, b.book_title, l.loan_date FROM members m INNER JOIN loans l ON m.member_id = l.member_id INNER JOIN books b ON l.book_id = b.book_id ORDER BY m.member_name;",
+        "SELECT m.member_name, b.book_title, l.borrowed_on FROM members m INNER JOIN loans l ON m.member_id = l.member_id INNER JOIN books b ON l.book_id = b.book_id ORDER BY m.member_name;",
     },
   ];
 
@@ -1398,7 +1398,7 @@ function buildSetOperatorQuestions() {
       id: "set:library:cities",
       dataset: "library",
       title: "Find all unique cities",
-      prompt: "Find all cities mentioned in the 'members' table and combine them with all cities mentioned in the 'customers' table (if there were any). Use the library dataset and union the cities from members with a hardcoded list for demonstration: SELECT 'Austin' UNION SELECT 'Chicago' UNION SELECT 'New York' ORDER BY 1.",
+      prompt: "Find all cities mentioned in the 'members' table and combine them with the city 'San Francisco'. Sort the result by city.",
       tables: "members",
       expectedQuery: "SELECT city FROM members UNION SELECT 'San Francisco' ORDER BY 1;",
       verificationQuery: "",
@@ -1459,12 +1459,12 @@ function buildFunctionQuestions() {
       expectedQuery: "SELECT LOWER(product_name) FROM products;",
     },
     {
-      id: "func:math:abs",
+      id: "func:string:length",
       dataset: "store",
-      title: "Absolute stock levels",
-      prompt: "While stock is usually positive, use the ABS() function on the stock_level to ensure absolute values are returned.",
+      title: "Measure product name length",
+      prompt: "Use the LENGTH() function to find how many characters are in each product_name. Show the product_name and the length. Sort by length.",
       tables: "products",
-      expectedQuery: "SELECT ABS(stock_level) FROM products;",
+      expectedQuery: "SELECT product_name, LENGTH(product_name) FROM products ORDER BY LENGTH(product_name);",
     },
   ];
 
@@ -2244,6 +2244,30 @@ function submitAnswer() {
     handleIncorrect(conceptKey);
     currentQuestionAttempts += 1;
     
+    let comparisonUI = "";
+    if (currentQuestionAttempts >= 2) {
+      let expectedData = [];
+      try {
+        if (currentQuestion.verificationQuery) {
+          const db = buildDatabase(currentQuestion.dataset);
+          db.run(currentQuestion.expectedQuery);
+          expectedData = db.exec(currentQuestion.verificationQuery);
+          db.close();
+        } else {
+          expectedData = runQuery(currentQuestion.expectedQuery);
+        }
+        
+        comparisonUI = `
+          <div style="margin: 15px 0; padding: 12px; border: 1px dashed var(--accent-soft); border-radius: 8px; background: var(--surface-strong);">
+            <p style="margin-bottom: 8px; font-weight: 600; color: var(--accent); font-size: 0.9rem;">🎯 TARGET OUTPUT (Expected):</p>
+            ${renderTable(expectedData)}
+          </div>
+        `;
+      } catch (e) {
+        console.error("Failed to generate comparison table:", e);
+      }
+    }
+
     let retryMessage = "";
     if (currentQuestionAttempts >= 3) {
       retryMessage = `
@@ -2266,6 +2290,8 @@ function submitAnswer() {
         Not correct yet. Your SQL ran, but the result does not match the expected answer for this concept.
       </div>
       ${retryMessage}
+      ${comparisonUI}
+      <p style="margin: 10px 0 5px; font-weight: 600; font-size: 0.9rem;">YOUR OUTPUT:</p>
       ${renderTable(userResults)}
     `;
     renderMastery();
